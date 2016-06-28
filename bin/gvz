@@ -37,6 +37,12 @@ const yargs = require('yargs')
     description: 'highlight edge',
     default: false
   })
+  .options('aggregate', {
+    alias: 'a',
+    description: 'how to aggregate multiple values for timeseries',
+    choices: ['avg', 'sum'],
+    default: 'avg'
+  })
   .help()
 
 const render = require('../index')
@@ -47,7 +53,8 @@ const opts = {
   width: yargs.argv.width,
   timeseries: yargs.argv.timeseries,
   fill: yargs.argv.fill,
-  edge: yargs.argv.edge
+  edge: yargs.argv.edge,
+  aggregate: yargs.argv.aggregate === 'avg' ? avg : sum
 }
 
 if (opts.height === true) {
@@ -110,4 +117,16 @@ function renderData (data) {
   }
 
   return console.log(render(data, opts))
+}
+
+function sum (collected) {
+  return collected.reduce((acc, xs) => {
+    return acc + xs[1]
+  }, 0)
+}
+
+function avg (collected) {
+  return collected.reduce((acc, xs) => {
+    return acc + xs[1]
+  }, 0) / collected.length
 }

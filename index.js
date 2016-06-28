@@ -12,6 +12,12 @@ const colorScale = require('d3-scale')
 const MARK_EDGE = 0b00000001
 const MARK_FILL = 0b00000010
 
+function avg (collected) {
+  return collected.reduce((acc, xs) => {
+    return acc + xs[1]
+  }, 0) / collected.length
+}
+
 function renderer (series, options) {
   options = Object.assign({
     stack: false,
@@ -19,7 +25,8 @@ function renderer (series, options) {
     width: 10,
     timeseries: false,
     fill: true,
-    edge: false
+    edge: false,
+    aggregate: avg
   }, options || {})
 
   const dims = [
@@ -41,7 +48,7 @@ function renderer (series, options) {
     const max = getMax(series.map(xs => getMax(xs.map(ys => ys[0]))))
     const step = (max - min) / cols
     series = series.map(xs => {
-      return normalizeTimeseries(xs, min, max, step)
+      return normalizeTimeseries(xs, min, max, step, options.aggregate)
     })
   }
   const xRange = [0, getMin(series.map(xs => xs.length))]
@@ -203,10 +210,11 @@ function getMax (arr) {
   }, -Infinity)
 }
 
-function normalizeTimeseries (ts, min, max, step) {
+function normalizeTimeseries (ts, min, max, step, agg) {
   var idx = 0
   var time = min
   const output = []
+
   while (time < max) {
     const collected = []
     for (var i = idx; ts[i] && ts[i][0] < time + step; ++i) {
@@ -227,9 +235,7 @@ function normalizeTimeseries (ts, min, max, step) {
     output.push(
       collected.length === 1
       ? collected[0][1]
-      : collected.reduce((acc, xs) => {
-        return xs[1] + acc
-      }, 0) / collected.length
+      : agg(collected)
     )
 
     time += step
