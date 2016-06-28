@@ -1,0 +1,113 @@
+#!/usr/bin/env node
+const fs = require('fs')
+const maxDims = process.stderr.getWindowSize()
+const yargs = require('yargs')
+  .option('stack', {
+    alias: 's',
+    description: 'stack multiple timeseries together',
+    default: false
+  })
+  .option('fill', {
+    alias: 'f',
+    description: 'fill area between point value and x-axis',
+    default: true
+  })
+  .option('width', {
+    alias: 'w',
+    description: 'number of columns to use',
+    default: maxDims[0]
+  })
+  .option('height', {
+    alias: 'h',
+    description: 'number of rows to use',
+    default: (maxDims[1] / 5) | 0
+  })
+  .option('timeseries', {
+    alias: ['t', 'ts'],
+    description: 'treat input as timeseries (tuples of time, value)',
+    default: false
+  })
+  .options('mode', {
+    alias: 'm',
+    description: 'input text parsing mode',
+    choices: ['csv', 'tsv', 'ssv', 'json', 'ndjson']
+  })
+  .options('edge', {
+    alias: 'e',
+    description: 'highlight edge',
+    default: false
+  })
+  .help()
+
+const render = require('../index')
+
+const opts = {
+  stack: yargs.argv.stack,
+  height: yargs.argv.height,
+  width: yargs.argv.width,
+  timeseries: yargs.argv.timeseries,
+  fill: yargs.argv.fill,
+  edge: yargs.argv.edge
+}
+
+if (opts.height === true) {
+  return yargs.showHelp()
+}
+
+
+if (!process.stdin.isTTY) {
+  const acc = []
+  process.stdin
+    .on('data', xs => acc.push(xs))
+    .on('end', () => {
+      renderData(Buffer.concat(acc).toString('utf8'))
+    })
+} else {
+  fs.readFile(yargs.argv._[0], 'utf8', (err, data) => renderData(data))
+}
+
+function renderData (data) {
+  switch (yargs.argv.mode) {
+    default:
+    case 'json':
+      data = JSON.parse(data)
+    break
+    case 'ndjson':
+      data = data.trim().split(/[\r\n]+/)
+      data = data.map(xs => {
+        try {
+          return JSON.parse(xs)
+        } catch (err) {}
+      }).filter(Boolean)
+      data = data.length === 1 ? data[0] : data
+    break
+    case 'csv':
+      data = data.trim().split(/[\r\n]+/)
+      data = data.map(xs => xs.split(','))
+      data = data.length === 1 ? data[0] : data
+    break
+    case 'csv':
+      data = data.trim().split(/[\r\n]+/)
+      data = data.map(xs => xs.split('\t'))
+      data = data.length === 1 ? data[0] : data
+    break
+    case 'ssv':
+      data = data.trim().split(/[\r\n]+/)
+      data = data.map(xs => xs.split(/\s+/))
+      data = data.length === 1 ? data[0] : data
+    break
+  }
+
+  if (!Array.isArray(data)) {
+    console.error('expected data to be an array!')
+    return process.exit(1)
+  }
+
+  if (opts.timeseries && data[0].length === 2) {
+    data = [data]
+  } else if (typeof data[0] === 'number') {
+    data = [data]
+  }
+
+  return console.log(render(data, opts))
+}

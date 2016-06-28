@@ -1,0 +1,26 @@
+{
+  "name": "gvz",
+  "version": "1.0.0",
+  "description": "cli tool to quickly visualize data",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/chrisdickinson/gvz"
+  },
+  "keywords": [
+    "cartesian",
+    "graph"
+  ],
+  "author": "Chris Dickinson <chris@neversaw.us> (http://neversaw.us/)",
+  "license": "MIT",
+  "dependencies": {
+    "ansi-256-colors": "^1.1.0",
+    "bresenham": "0.0.4",
+    "d3-scale": "^1.0.0",
+    "minimist": "^1.2.0",
+    "yargs": "^4.7.1"
+  }
+}
