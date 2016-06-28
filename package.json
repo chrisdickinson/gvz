@@ -1,6 +1,6 @@
 {
   "name": "gvz",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "cli tool to quickly visualize data",
   "main": "index.js",
   "bin": "./bin/gvz",
