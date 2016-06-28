@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "cli tool to quickly visualize data",
   "main": "index.js",
+  "bin": "./bin/gvz",
   "scripts": {
     "test": "node test.js"
   },
